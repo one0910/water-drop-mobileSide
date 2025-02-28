@@ -1,0 +1,47 @@
+.container {
+  .item {
+    padding: 5px;
+    border-bottom: solid 1px var(--common-background-color);
+    .img {
+      width: 100%;
+      border-radius: 5px;
+    }
+    .content {
+      padding: 0 10px;
+    }
+    .title {
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 3px;
+    }
+    .desc {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
+    }
+    .descContent {
+      text-overflow: ellipsis;
+      display: inline-block;
+      white-space: nowrap;
+      width: calc(100% - 50px);
+      overflow: hidden;
+    }
+    .count {
+      float: right;
+    }
+    .price {
+      font-size: 18px;
+      color: var(--common-warning-color);
+      font-weight: bold;
+      margin-top: 3px;
+    }
+    .oldPrice {
+      font-size: 12px;
+      color: #ccc;
+      text-decoration: line-through;
+      margin-top: 2px;
+    }
+  }
+}

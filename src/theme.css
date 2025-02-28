@@ -1,0 +1,9 @@
+:root:root {
+  --adm-color-primary: #01979a;
+}
+
+:root {
+  --common-background-color: #F8F9FB;
+  --common-warning-color: #ff6a00;
+  --common-gray-color: #828282;
+}

@@ -1,0 +1,46 @@
+.container {
+  background-color: #fff;
+  padding: 12px;
+}
+.itemContainer {
+  position: relative;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: #fff;
+  background: linear-gradient(90deg, var(--adm-color-warning) 0%, var(--adm-color-primary) 100%);
+  &::after {
+    font-size: 50px;
+    font-weight: bolder;
+    position: absolute;
+    bottom: 0;
+    right: 10px;
+    opacity: 0.3;
+    font-style: oblique;
+  }
+}
+.expired {
+  background: var(--common-gray-color);
+  &::after {
+    content: '已過期';
+  }
+}
+.deplete {
+  background: var(--common-gray-color);
+  &::after {
+    content: '已使用完畢';
+  }
+}
+.top {
+  width: 100%;
+  .name {
+    margin-left: 5px;
+    font-size: 14px;
+  }
+}
+
+.bottom {
+  width: 100%;
+  margin-top: 10px;
+}
