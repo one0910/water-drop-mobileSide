@@ -1,0 +1,46 @@
+name: Deploy Mobile to ECS with Docker + ACR
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Mobile Repo
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Aliyun ACR
+        run: |
+          echo "${{ secrets.ACR_PASSWORD }}" | docker login \
+            --username ${{ secrets.ACR_USERNAME }} \
+            ${{ secrets.ACR_REGISTRY }} --password-stdin
+
+      - name: Build and Push Mobile Docker Image
+        run: |
+          docker build -t ${{ secrets.ACR_REGISTRY }}/one-react_nestjs/mobile:v1 .
+          docker push ${{ secrets.ACR_REGISTRY }}/one-react_nestjs/mobile:v1
+
+      - name: SSH deploy to ECS (only restart Mobile container)
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: ${{ secrets.ECS_USER }}
+          key: ${{ secrets.ECS_SSH_KEY }}
+          script: |
+            echo "🛑 移除舊版 Mobile 容器（如果存在）..."
+            docker compose -f /opt/docker/docker-compose.yml rm -sf mobile
+
+            echo "📥 拉取最新 Mobile 映像..."
+            docker compose -f /opt/docker/docker-compose.yml pull mobile
+
+            echo "🚀 啟動新版 Mobile 容器..."
+            docker compose -f /opt/docker/docker-compose.yml up -d mobile
+
+            echo "✅ Mobile 服務更新完成！"
