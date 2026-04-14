@@ -33,7 +33,7 @@ const ProductList = ({ name, type }: IProps) => {
       {/* <PullToRefresh onRefresh={() => onRefresh}> */}
       {/* 上面是手寫的PullToRefresh功能，下面是antDesign內建的PullToRefresh功能 */}
       {/* 下面onRefresh屬性，可以在當我們手指往下拉(也就是觸發ontouchmove)時會啟用資料刷新 */}
-      <PullToRefresh onRefresh={onRefresh}>
+      <PullToRefresh onRefresh={onRefresh} touch-action="none">
         <Grid columns={2} gap={10}>
           {
             data?.map(item => (
@@ -50,7 +50,7 @@ const ProductList = ({ name, type }: IProps) => {
       另外 antDesign內建的InfiniteScroll它在第首次載入頁面時會先加載2頁的資料
       目的是讓首頁的資料多一點點，體驗上比較滑順*/}
       <InfiniteScroll hasMore={hasMore} loadMore={loadMore} />
-    </div>
+    </div >
   );
 };
 export default ProductList;
