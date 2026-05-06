@@ -16,11 +16,11 @@ jobs:
       - name: Checkout Mobile Repo
         uses: actions/checkout@v4
 
-      - name: Generate TAG (sha + date GMT+8 timezone)
+      - name: Generate TAG (sha + datetime GMT+8 timezone)
         run: |
           SHA=$(git rev-parse --short HEAD)
-          DATETIME=$(TZ=Asia/Taipei date +%Y-%m-%d_%H%M)
-          echo "TAG=${SHA}_${DATE}" >> $GITHUB_ENV
+          DATETIME=$(TZ=Asia/Taipei date +%Y%m%d_%H%M)
+          echo "TAG=${SHA}_${DATETIME}" >> $GITHUB_ENV
 
       - name: Set up AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
