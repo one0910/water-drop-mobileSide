@@ -1,9 +1,12 @@
-name: Deploy Mobile to ECS with Docker + ACR
+name: Deploy Mobile to ECS (ECR + Versioned CI/CD)
 
 on:
   push:
     branches:
       - main
+
+env:
+  IMAGE_NAME: water-drop-mobile
 
 jobs:
   deploy:
@@ -11,36 +14,60 @@ jobs:
 
     steps:
       - name: Checkout Mobile Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Generate TAG (sha + date)
+        run: echo "TAG=$(git rev-parse --short HEAD)-$(date +%Y-%m-%d)" >> $GITHUB_ENV
 
-      - name: Log in to Aliyun ACR
-        run: |
-          echo "${{ secrets.ACR_PASSWORD }}" | docker login \
-            --username ${{ secrets.ACR_USERNAME }} \
-            ${{ secrets.ACR_REGISTRY }} --password-stdin
-
-      - name: Build and Push Mobile Docker Image
-        run: |
-          docker build -t ${{ secrets.ACR_REGISTRY }}/one-react_nestjs/mobile:v1 .
-          docker push ${{ secrets.ACR_REGISTRY }}/one-react_nestjs/mobile:v1
-
-      - name: SSH deploy to ECS (only restart Mobile container)
-        uses: appleboy/ssh-action@v0.1.10
+      - name: Set up AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          host: ${{ secrets.ECS_HOST }}
-          username: ${{ secrets.ECS_USER }}
-          key: ${{ secrets.ECS_SSH_KEY }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to AWS ECR
+        run: |
+          aws ecr get-login-password \
+          | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+
+      - name: Build Docker Image
+        run: |
+          docker build -t $IMAGE_NAME .
+
+      - name: Tag Docker Image
+        run: |
+          docker tag $IMAGE_NAME:latest ${{ secrets.ECR_REGISTRY }}/$IMAGE_NAME:latest
+          docker tag $IMAGE_NAME:latest ${{ secrets.ECR_REGISTRY }}/$IMAGE_NAME:${{ env.TAG }}
+
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.ECR_REGISTRY }}/$IMAGE_NAME:latest
+          docker push ${{ secrets.ECR_REGISTRY }}/$IMAGE_NAME:${{ env.TAG }}
+
+      - name: SSH deploy to ECS (Update Mobile only)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            echo "🛑 移除舊版 Mobile 容器（如果存在）..."
-            docker compose -f /opt/docker/docker-compose.yml rm -sf mobile
+            set -e
 
-            echo "📥 拉取最新 Mobile 映像..."
-            docker compose -f /opt/docker/docker-compose.yml pull mobile
+            cd ~/water-drop-deploy
 
-            echo "🚀 啟動新版 Mobile 容器..."
-            docker compose -f /opt/docker/docker-compose.yml up -d mobile
+            export AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            export AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            export AWS_DEFAULT_REGION=${{ secrets.AWS_REGION }}
 
-            echo "✅ Mobile 服務更新完成！"
+            echo "🔐 登入ECR..."
+            aws ecr get-login-password --region $AWS_DEFAULT_REGION \
+            | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+
+            echo "📥 拉取最新 Mobile image..."
+            docker compose pull mobile
+
+            echo "🚀 重啟 Mobile container..."
+            docker compose up -d --force-recreate mobile
+
+            echo "✅ Mobile 部署完成"
