@@ -17,7 +17,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Generate TAG (sha + date + time)
-        run: echo "TAG=$(git rev-parse --short HEAD)_$(date +%Y-%m-%d_%H-%M-%S)" >> $GITHUB_ENV
+        run: echo "TAG=$(git rev-parse --short HEAD)_$(date +%Y-%m-%d_%H%M)" >> $GITHUB_ENV
 
       - name: Set up AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
