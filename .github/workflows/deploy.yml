@@ -69,7 +69,7 @@ jobs:
             | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
 
             echo "📥 拉取最新 Mobile image..."
-            docker compose pull mobile
+            docker compose pull mobile || exit 1
 
             echo "🚀 重啟 Mobile container..."
             docker compose up -d --force-recreate mobile
