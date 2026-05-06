@@ -19,7 +19,7 @@ jobs:
       - name: Generate TAG (sha + datetime GMT+8 timezone)
         run: |
           SHA=$(git rev-parse --short HEAD)
-          DATETIME=$(TZ=Asia/Taipei date +%Y%m%d_%H%M)
+          DATETIME=$(TZ=Asia/Taipei date +%Y-%m-%d_%H%M)
           echo "TAG=${SHA}_${DATETIME}" >> $GITHUB_ENV
 
       - name: Set up AWS Credentials
